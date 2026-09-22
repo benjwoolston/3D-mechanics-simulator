@@ -1,21 +1,36 @@
-import * as THREE from "three";
+import { SceneManager } from './rendering/SceneManager';
+import { CameraController } from './rendering/CameraController';
+import { SimulationBox } from './rendering/SimulationBox';
+import { addLighting } from './rendering/Lighting';
 
-const scene = new THREE.Scene();
+const sceneManager = new SceneManager();
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight,0.1,1000);
+const cameraController = new CameraController(
+    sceneManager.camera,
+    sceneManager.renderer
+);
 
-const renderer = new THREE.WebGLRenderer();
+const simulationBox = new SimulationBox();
 
-renderer.setSize(window.innerWidth, window.innerHeight);
+simulationBox.addToScene(
+    sceneManager.scene
+);
 
-document.body.appendChild(renderer.domElement);
+addLighting(sceneManager.scene);
 
-camera.position.z = 5;
+window.addEventListener(
+    'resize',
+    () => {
+        sceneManager.resize();
+    }
+);
 
 function animate(): void {
     requestAnimationFrame(animate);
 
-    renderer.render(scene, camera);
+    cameraController.update();
+
+    sceneManager.render();
 }
 
 animate();
