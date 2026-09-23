@@ -6,8 +6,9 @@ import { SphereBody } from './physics/SphereBody';
 import { ParticleRenderer } from './rendering/ParticleRenderer';
 import { PhysicsWorld } from './physics/PhysicsWorld';
 import { ParticleDebugRenderer } from './rendering/ParticleDebugRenderer';
+import { SimulationBounds } from './physics/SimulationBounds';
 
-
+const bounds = new SimulationBounds(-10, 10,0, 10,-10, 10);
 
 const sceneManager = new SceneManager();
 
@@ -31,7 +32,7 @@ const particle = new SphereBody(
 
 const particleDebugRenderer = new ParticleDebugRenderer(particle);
 
-const physicsWorld = new PhysicsWorld();
+const physicsWorld = new PhysicsWorld(9.80665, bounds);
 physicsWorld.addBody(particle);
 
 const particleRenderer = new ParticleRenderer(

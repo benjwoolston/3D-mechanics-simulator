@@ -3,6 +3,7 @@ import { SphereBody } from '../physics/SphereBody';
 
 export class ParticleDebugRenderer {
     private readonly velocityArrow: THREE.ArrowHelper;
+    private readonly accelerationArrow: THREE.ArrowHelper;
 
     private readonly label: THREE.Sprite;
     private readonly labelCanvas: HTMLCanvasElement;
@@ -16,10 +17,17 @@ export class ParticleDebugRenderer {
             2,
             0xffff00
         );
+        this.accelerationArrow = new THREE.ArrowHelper(
+            new THREE.Vector3(0, -1, 0),
+            new THREE.Vector3(0, 0, 0),
+            1.5,
+            0xff4444
+        );
+
 
         this.labelCanvas = document.createElement('canvas');
         this.labelCanvas.width = 512;
-        this.labelCanvas.height = 256;
+        this.labelCanvas.height = 300;
 
         const context = this.labelCanvas.getContext('2d');
 
@@ -49,6 +57,7 @@ export class ParticleDebugRenderer {
 
     public update(body: SphereBody): void {
         this.updateVelocityArrow(body);
+        this.updateAccelerationArrow(body);
         this.updateLabel(body);
     }
 
@@ -86,6 +95,39 @@ export class ParticleDebugRenderer {
         }
     }
 
+    private updateAccelerationArrow(
+        body: SphereBody
+    ): void {
+        const acceleration = new THREE.Vector3(
+            body.acceleration[0],
+            body.acceleration[1],
+            body.acceleration[2]
+        );
+
+        const magnitude = acceleration.length();
+
+        this.accelerationArrow.position.set(
+            body.position[0],
+            body.position[1],
+            body.position[2]
+        );
+
+        if (magnitude > 0) {
+            acceleration.normalize();
+
+            this.accelerationArrow.setDirection(
+                acceleration
+            );
+
+            this.accelerationArrow.setLength(1.5);
+
+            this.accelerationArrow.visible = true;
+        } else {
+            this.accelerationArrow.visible = false;
+        }
+    }
+
+
     private updateLabel(
         body: SphereBody
     ): void {
@@ -113,15 +155,12 @@ export class ParticleDebugRenderer {
 
         context.textBaseline = 'top';
 
-        const speed = Math.sqrt(
-            body.velocity[0] ** 2 +
-            body.velocity[1] ** 2 +
-            body.velocity[2] ** 2
-        );
+        const speed = Math.sqrt(body.velocity[0] ** 2 +body.velocity[1] ** 2 +body.velocity[2] ** 2);
 
         const lines = [
             `Position: (${body.position[0].toFixed(2)}, ${body.position[1].toFixed(2)}, ${body.position[2].toFixed(2)})`,
             `Velocity: (${body.velocity[0].toFixed(2)}, ${body.velocity[1].toFixed(2)}, ${body.velocity[2].toFixed(2)})`,
+            `Acceleration: (${body.acceleration[0].toFixed(2)}, ${body.acceleration[1].toFixed(2)}, ${body.acceleration[2].toFixed(2)})`,
             `Speed:    ${speed.toFixed(2)}`,
             `Mass:     ${body.mass.toFixed(2)}`,
             `Radius:   ${body.radius.toFixed(2)}`
@@ -148,6 +187,7 @@ export class ParticleDebugRenderer {
         scene: THREE.Scene
     ): void {
         scene.add(this.velocityArrow);
+        scene.add(this.accelerationArrow);
         scene.add(this.label);
     }
 }
