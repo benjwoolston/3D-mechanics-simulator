@@ -7,7 +7,6 @@ export class SceneManager {
 
     constructor() {
         this.scene = new THREE.Scene();
-
         this.scene.background = new THREE.Color(0x111111);
 
         this.camera = new THREE.PerspectiveCamera(
@@ -16,8 +15,9 @@ export class SceneManager {
             0.1,
             1000
         );
-
         this.camera.position.set(15, 12, 15);
+        this.camera.lookAt(0,5,0);
+        
 
         this.renderer = new THREE.WebGLRenderer({
             antialias: true
@@ -28,11 +28,21 @@ export class SceneManager {
             window.innerHeight
         );
 
-        this.renderer.setPixelRatio(
-            Math.min(window.devicePixelRatio, 2)
-        );
+        this.renderer.setClearColor(0x111111,1);
 
-        document.body.appendChild(this.renderer.domElement);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const canvas = this.renderer.domElement;
+            canvas.style.position = 'fixed';
+            canvas.style.inset = '0';
+            canvas.style.width = '100vw';
+            canvas.style.height = '100vh';
+            canvas.style.display = 'block';
+            canvas.style.zIndex = '0';
+
+
+
+        document.body.appendChild(canvas);
     }
 
     public render(): void {

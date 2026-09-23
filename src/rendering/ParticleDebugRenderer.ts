@@ -190,4 +190,11 @@ export class ParticleDebugRenderer {
         scene.add(this.accelerationArrow);
         scene.add(this.label);
     }
+
+    public setVisible(visible: boolean): void {
+        this.velocityArrow.visible = visible;
+        this.accelerationArrow.visible = visible;
+        this.label.visible = visible;
+    }
+
 }

@@ -7,6 +7,7 @@ import { ParticleRenderer } from './rendering/ParticleRenderer';
 import { PhysicsWorld } from './physics/PhysicsWorld';
 import { ParticleDebugRenderer } from './rendering/ParticleDebugRenderer';
 import { SimulationBounds } from './physics/SimulationBounds';
+import { SimulationControls } from './UI/simulationControls';
 
 const bounds = new SimulationBounds(-10, 10,0, 10,-10, 10);
 
@@ -25,19 +26,26 @@ simulationBox.addToScene(
 
 const particle = new SphereBody(
     [0, 5, 0],
-    [2, 1, 0],
+    [2, 3, 5],
     1,
     0.5
 );
 
 const particleDebugRenderer = new ParticleDebugRenderer(particle);
 
-const physicsWorld = new PhysicsWorld(9.80665, bounds);
+const physicsWorld = new PhysicsWorld(9.80665, bounds, 0.8);
 physicsWorld.addBody(particle);
 
 const particleRenderer = new ParticleRenderer(
     particle
 );
+
+const simulationControls = new SimulationControls(
+    physicsWorld,
+    particle,
+    particleDebugRenderer
+);
+
 
 particleRenderer.addToScene(
     sceneManager.scene
@@ -65,15 +73,19 @@ function animate(currentTime: number): void {
     const deltaTime = (currentTime - previousTime) / 1000;
     previousTime = currentTime;
 
-    physicsWorld.update(deltaTime);
+    if (!simulationControls.isPaused()) {
+        physicsWorld.update(deltaTime);
 
-    particleRenderer.update(particle);
+        particleRenderer.update(particle);
 
-    particleDebugRenderer.update(particle);
+        particleDebugRenderer.update(particle);
 
-    cameraController.update();
+        cameraController.update();
 
+    }
     sceneManager.render();
-}
 
-requestAnimationFrame(animate);
+
+}
+requestAnimationFrame(animate)
+
