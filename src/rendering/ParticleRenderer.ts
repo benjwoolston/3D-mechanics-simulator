@@ -6,7 +6,7 @@ export class ParticleRenderer {
 
     constructor(body: SphereBody) {
         const geometry = new THREE.SphereGeometry(
-            body.radius,
+            1,
             32,
             16
         );
@@ -24,6 +24,7 @@ export class ParticleRenderer {
     }
 
     public update(body: SphereBody): void {
+        this.mesh.scale.setScalar(body.radius);
         this.mesh.position.set(
             body.position[0],
             body.position[1],

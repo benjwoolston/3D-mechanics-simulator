@@ -7,7 +7,11 @@ import { ParticleRenderer } from './rendering/ParticleRenderer';
 import { PhysicsWorld } from './physics/PhysicsWorld';
 import { ParticleDebugRenderer } from './rendering/ParticleDebugRenderer';
 import { SimulationBounds } from './physics/SimulationBounds';
-import { SimulationControls } from './UI/simulationControls';
+import {
+    createSharedSimulationControls,
+    SimulationSettingsControls,
+    SimulationControls
+} from './UI/simulationControls';
 
 const bounds = new SimulationBounds(-10, 10,0, 10,-10, 10);
 const sceneManager = new SceneManager();
@@ -60,10 +64,23 @@ const secondParticleRenderer = new ParticleRenderer(
 );
 
 
-const simulationControls = new SimulationControls(
+const sharedControls = createSharedSimulationControls();
+new SimulationSettingsControls(physicsWorld, sharedControls);
+const firstSimulationControls = new SimulationControls(
     physicsWorld,
     particle,
-    particleDebugRenderer
+    particleDebugRenderer,
+    'Ball 1 Controls',
+    'right',
+    sharedControls
+);
+const secondSimulationControls = new SimulationControls(
+    physicsWorld,
+    secondParticle,
+    secondParticleDebugRenderer,
+    'Ball 2 Controls',
+    'left',
+    sharedControls
 );
 
 
@@ -105,7 +122,7 @@ function animate(currentTime: number): void {
     const deltaTime = (currentTime - previousTime) / 1000;
     previousTime = currentTime;
 
-    if (!simulationControls.isPaused()) {
+    if (!firstSimulationControls.isPaused()) {
         physicsWorld.update(deltaTime);
     }
 
