@@ -1,4 +1,5 @@
 import { SphereBody } from './SphereBody';
+import { CollisionInfo, SphereCollision } from './SphereCollision';
 import { Integrator } from './Integrator';
 import { Gravity } from './Gravity';
 import { SimulationBounds } from './SimulationBounds';
@@ -7,7 +8,11 @@ import { and } from 'three/tsl';
 export class PhysicsWorld {
     public readonly bodies: SphereBody[] = [];
 
+    public collisions: CollisionInfo[] = [];
+
     public readonly fixedTimeStep = 0.01;
+
+    private readonly sphereCollision = new SphereCollision();
 
     private readonly gravity: Gravity;
 
@@ -93,5 +98,25 @@ export class PhysicsWorld {
             body.position[2] = this.bounds.maxZ - radius;
             body.velocity[2] *= -this.restitutionCoefficient;
         }
-}
+    }
+
+    public detectSphereCollisions(): number {
+        this.collisions = [];
+
+        for (let i = 0; i < this.bodies.length; i++) {
+            for (let j = i + 1; j < this.bodies.length; j++) {
+                const collision = this.sphereCollision.detect(
+                    this.bodies[i],
+                    this.bodies[j]
+                );
+
+                if (collision) {
+                    this.collisions.push(collision);
+                }
+            }
+        }
+
+        return this.collisions.length;
+    }
+
 }

@@ -31,13 +31,26 @@ const particle = new SphereBody(
     0.5
 );
 
+const secondParticle = new SphereBody(
+    [0, 1, 0],
+    [0, 0, 0],
+    1,
+    0.5
+);
+
 const particleDebugRenderer = new ParticleDebugRenderer(particle);
+const secondParticleDebugRenderer = new ParticleDebugRenderer(secondParticle);
 
 const physicsWorld = new PhysicsWorld(9.80665, bounds, 0.8);
+
 physicsWorld.addBody(particle);
+physicsWorld.addBody(secondParticle);
 
 const particleRenderer = new ParticleRenderer(
     particle
+);
+const secondParticleRenderer = new ParticleRenderer(
+    secondParticle
 );
 
 const simulationControls = new SimulationControls(
@@ -50,10 +63,18 @@ const simulationControls = new SimulationControls(
 particleRenderer.addToScene(
     sceneManager.scene
 );
+secondParticleRenderer.addToScene(
+    sceneManager.scene
+);
+
 
 particleDebugRenderer.addToScene(
     sceneManager.scene
 );
+secondParticleDebugRenderer.addToScene(
+    sceneManager.scene
+);
+
 
 addLighting(sceneManager.scene);
 
@@ -65,6 +86,7 @@ window.addEventListener(
 );
 
 let previousTime = performance.now();
+let previousCollisionCount = 0;
 
 
 function animate(currentTime: number): void {
@@ -75,17 +97,23 @@ function animate(currentTime: number): void {
 
     if (!simulationControls.isPaused()) {
         physicsWorld.update(deltaTime);
-
-        particleRenderer.update(particle);
-
-        particleDebugRenderer.update(particle);
-
-        cameraController.update();
-
     }
+
+    const collisionCount = physicsWorld.detectSphereCollisions();
+    if (collisionCount > 0) {
+        if (collisionCount !== previousCollisionCount) {
+            console.log(`Collisions detected: ${collisionCount}`, physicsWorld.collisions);
+        }
+    } else if (previousCollisionCount > 0) {
+        console.log('No sphere collisions detected');
+    }
+    previousCollisionCount = collisionCount;
+
+    particleRenderer.update(particle);
+    secondParticleRenderer.update(secondParticle);
+    cameraController.update();
     sceneManager.render();
-
-
+    particleDebugRenderer.update(particle);
+    secondParticleDebugRenderer.update(secondParticle);
 }
 requestAnimationFrame(animate)
-
