@@ -10,7 +10,6 @@ import { SimulationBounds } from './physics/SimulationBounds';
 import { SimulationControls } from './UI/simulationControls';
 
 const bounds = new SimulationBounds(-10, 10,0, 10,-10, 10);
-
 const sceneManager = new SceneManager();
 
 const cameraController = new CameraController(
@@ -24,8 +23,9 @@ simulationBox.addToScene(
     sceneManager.scene
 );
 
+
 const particle = new SphereBody(
-    [0, 5, 0],
+    [4, 1, 0],
     [2, 3, 5],
     1,
     0.5
@@ -38,13 +38,19 @@ const secondParticle = new SphereBody(
     0.5
 );
 
+
+
 const particleDebugRenderer = new ParticleDebugRenderer(particle);
 const secondParticleDebugRenderer = new ParticleDebugRenderer(secondParticle);
+
+
 
 const physicsWorld = new PhysicsWorld(9.80665, bounds, 0.8);
 
 physicsWorld.addBody(particle);
 physicsWorld.addBody(secondParticle);
+
+
 
 const particleRenderer = new ParticleRenderer(
     particle
@@ -52,6 +58,7 @@ const particleRenderer = new ParticleRenderer(
 const secondParticleRenderer = new ParticleRenderer(
     secondParticle
 );
+
 
 const simulationControls = new SimulationControls(
     physicsWorld,
@@ -66,6 +73,7 @@ particleRenderer.addToScene(
 secondParticleRenderer.addToScene(
     sceneManager.scene
 );
+
 
 
 particleDebugRenderer.addToScene(
@@ -85,6 +93,8 @@ window.addEventListener(
     }
 );
 
+
+
 let previousTime = performance.now();
 let previousCollisionCount = 0;
 
@@ -99,9 +109,9 @@ function animate(currentTime: number): void {
         physicsWorld.update(deltaTime);
     }
 
-    const collisionCount = physicsWorld.detectSphereCollisions();
+    const collisionCount = physicsWorld.collisions.length;
     if (collisionCount > 0) {
-        if (collisionCount !== previousCollisionCount) {
+        if (previousCollisionCount === 0) {
             console.log(`Collisions detected: ${collisionCount}`, physicsWorld.collisions);
         }
     } else if (previousCollisionCount > 0) {

@@ -1,34 +1,27 @@
 import { SphereBody } from './SphereBody';
-import { CollisionInfo, SphereCollision } from './SphereCollision';
+import { SphereCollision, type CollisionInfo } from './SphereCollision';
 import { Integrator } from './Integrator';
 import { Gravity } from './Gravity';
 import { SimulationBounds } from './SimulationBounds';
-import { and } from 'three/tsl';
 
 export class PhysicsWorld {
     public readonly bodies: SphereBody[] = [];
-
     public collisions: CollisionInfo[] = [];
-
     public readonly fixedTimeStep = 0.01;
-
     private readonly sphereCollision = new SphereCollision();
-
     private readonly gravity: Gravity;
-
     private accumulator = 0;
-
     public gravityEnabled = true;
-
     private readonly integrator: Integrator;
-
     public readonly bounds: SimulationBounds;
-
     public simulationSpeed = 1.0;
-
     public restitutionCoefficient: number;
 
-    constructor(gravity:number = 9.80665, bounds: SimulationBounds,restitutionCoefficient: number = 1.0) {
+    constructor(
+        gravity: number = 9.80665,
+        bounds: SimulationBounds,
+        restitutionCoefficient: number = 1.0
+    ) {
         this.gravity = new Gravity();
         this.integrator = new Integrator();
         this.bounds = bounds;
@@ -40,23 +33,22 @@ export class PhysicsWorld {
     }
 
     public update(deltaTime: number): void {
-        const timespeed = deltaTime * this.simulationSpeed;
-        this.accumulator += Math.min(timespeed, 0.1);
+        this.collisions = [];
+        const scaledDeltaTime = deltaTime * this.simulationSpeed;
+        this.accumulator += Math.min(scaledDeltaTime, 0.1);
 
         while (this.accumulator >= this.fixedTimeStep) {
             this.step(this.fixedTimeStep);
-
             this.accumulator -= this.fixedTimeStep;
         }
     }
+
     private calculateAccelerations(): void {
         for (const body of this.bodies) {
             body.acceleration = [0, 0, 0];
 
             if (this.gravityEnabled) {
-                this.gravity.apply(
-                    body.acceleration
-                );
+                this.gravity.apply(body.acceleration);
             }
         }
     }
@@ -65,11 +57,20 @@ export class PhysicsWorld {
         this.calculateAccelerations();
 
         for (const body of this.bodies) {
-            this.integrator.integrate(body,dt);
-
+            this.integrator.integrate(body, dt);
             this.handleWallCollisions(body);
         }
-    
+
+        const collisions = this.SphereCollisionsCheck();
+        for (const collision of collisions) {
+            // Keep one record per body pair across all fixed steps in this update.
+            if (!this.collisions.some(
+                recorded => recorded.bodyA === collision.bodyA && recorded.bodyB === collision.bodyB
+            )) {
+                this.collisions.push(collision);
+            }
+        }
+        this.resolveSphereCollisions(collisions);
     }
 
     private handleWallCollisions(body: SphereBody): void {
@@ -100,8 +101,13 @@ export class PhysicsWorld {
         }
     }
 
-    public detectSphereCollisions(): number {
-        this.collisions = [];
+    public SphereCollisionsCount(): number {
+        this.collisions = this.SphereCollisionsCheck();
+        return this.collisions.length;
+    }
+
+    private SphereCollisionsCheck(): CollisionInfo[] {
+        const collisions: CollisionInfo[] = [];
 
         for (let i = 0; i < this.bodies.length; i++) {
             for (let j = i + 1; j < this.bodies.length; j++) {
@@ -111,12 +117,22 @@ export class PhysicsWorld {
                 );
 
                 if (collision) {
-                    this.collisions.push(collision);
+                    collisions.push(collision);
                 }
             }
         }
 
-        return this.collisions.length;
+        return collisions;
     }
 
+    public resolveSphereCollisions(collisions: CollisionInfo[]): number {
+        for (const collision of collisions) {
+            this.sphereCollision.resolveCollision(
+                collision,
+                this.restitutionCoefficient
+            );
+        }
+
+        return collisions.length;
+    }
 }
