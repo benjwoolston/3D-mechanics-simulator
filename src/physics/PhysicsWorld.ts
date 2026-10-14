@@ -8,6 +8,7 @@ export class PhysicsWorld {
     public readonly bodies: SphereBody[] = [];
     public collisions: CollisionInfo[] = [];
     public readonly fixedTimeStep = 0.01;
+    private readonly restingSpeedThreshold = 0.05;
     private readonly sphereCollision = new SphereCollision();
     private readonly gravity: Gravity;
     private accumulator = 0;
@@ -78,26 +79,34 @@ export class PhysicsWorld {
 
         if (body.position[0] - radius < this.bounds.minX && body.velocity[0] < 0) {
             body.position[0] = this.bounds.minX + radius;
-            body.velocity[0] *= -this.restitutionCoefficient;
+            this.bounceFromWall(body, 0);
         } else if (body.position[0] + radius > this.bounds.maxX && body.velocity[0] > 0) {
             body.position[0] = this.bounds.maxX - radius;
-            body.velocity[0] *= -this.restitutionCoefficient;
+            this.bounceFromWall(body, 0);
         }
 
         if (body.position[1] - radius < this.bounds.minY && body.velocity[1] < 0) {
             body.position[1] = this.bounds.minY + radius;
-            body.velocity[1] *= -this.restitutionCoefficient;
+            this.bounceFromWall(body, 1);
         } else if (body.position[1] + radius > this.bounds.maxY && body.velocity[1] > 0) {
             body.position[1] = this.bounds.maxY - radius;
-            body.velocity[1] *= -this.restitutionCoefficient;
+            this.bounceFromWall(body, 1);
         }
 
         if (body.position[2] - radius < this.bounds.minZ && body.velocity[2] < 0) {
             body.position[2] = this.bounds.minZ + radius;
-            body.velocity[2] *= -this.restitutionCoefficient;
+            this.bounceFromWall(body, 2);
         } else if (body.position[2] + radius > this.bounds.maxZ && body.velocity[2] > 0) {
             body.position[2] = this.bounds.maxZ - radius;
-            body.velocity[2] *= -this.restitutionCoefficient;
+            this.bounceFromWall(body, 2);
+        }
+    }
+
+    private bounceFromWall(body: SphereBody, axis: 0 | 1 | 2): void {
+        body.velocity[axis] *= -this.restitutionCoefficient;
+
+        if (Math.abs(body.velocity[axis]) < this.restingSpeedThreshold) {
+            body.velocity[axis] = 0;
         }
     }
 
