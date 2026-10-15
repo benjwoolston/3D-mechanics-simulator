@@ -117,7 +117,9 @@ export class PhysicsWorld {
     private bounceFromWall(body: SphereBody, axis: 0 | 1 | 2): void {
         body.velocity[axis] *= -this.restitutionCoefficient;
 
-        if (Math.abs(body.velocity[axis]) < this.restingSpeedThreshold) {
+        const accelerationPerStep = Math.abs(body.acceleration[axis]) * this.fixedTimeStep;
+        const restingThreshold = Math.max(this.restingSpeedThreshold, accelerationPerStep);
+        if (Math.abs(body.velocity[axis]) <= restingThreshold) {
             body.velocity[axis] = 0;
         }
     }
