@@ -6,21 +6,66 @@ export interface SharedSimulationControls {
     paused: boolean;
 }
 
+export const MAX_BALL_COUNT = 10;
+
+const BALL_COLORS = [
+    { name: 'Blue', value: '#3399ff' },
+    { name: 'Red', value: '#ff4d4d' },
+    { name: 'Green', value: '#4caf50' },
+    { name: 'Yellow', value: '#ffeb3b' },
+    { name: 'Orange', value: '#ff9800' },
+    { name: 'Purple', value: '#9c27b0' },
+    { name: 'Pink', value: '#e91e63' },
+    { name: 'Cyan', value: '#00bcd4' },
+    { name: 'White', value: '#ffffff' },
+    { name: 'Black', value: '#212121' },
+    { name: 'Brown', value: '#795548' },
+    { name: 'Lime', value: '#8bc34a' }
+] as const;
+
 export function createSharedSimulationControls(): SharedSimulationControls {
     return {
         paused: true
     };
 }
 
+export function createBallControlsDock(side: 'left' | 'right'): HTMLDivElement {
+    const dock = document.createElement('div');
+    Object.assign(dock.style, {
+        position: 'fixed',
+        [side]: '20px',
+        top: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: '10px',
+        width: '220px',
+        maxWidth: 'calc(100vw - 40px)',
+        maxHeight: 'calc(100vh - 40px)',
+        overflowY: 'auto',
+        zIndex: '1000'
+    });
+    document.body.appendChild(dock);
+    return dock;
+}
+
 export class SimulationSettingsControls {
     private readonly world: PhysicsWorld;
     private readonly sharedControls: SharedSimulationControls;
+    private readonly onAddBall: () => void;
     private readonly container: HTMLDetailsElement;
+    private readonly addBallButton: HTMLButtonElement;
 
-    constructor(world: PhysicsWorld, sharedControls: SharedSimulationControls) {
+    constructor(
+        world: PhysicsWorld,
+        sharedControls: SharedSimulationControls,
+        onAddBall: () => void
+    ) {
         this.world = world;
         this.sharedControls = sharedControls;
+        this.onAddBall = onAddBall;
         this.container = document.createElement('details');
+        this.addBallButton = document.createElement('button');
         this.createUI();
         document.body.appendChild(this.container);
     }
@@ -56,6 +101,23 @@ export class SimulationSettingsControls {
         this.createSpeedControl();
         this.createGravityControl();
         this.createRestitutionControl();
+        this.createAddBallButton();
+    }
+
+    private createAddBallButton(): void {
+        this.addBallButton.textContent = 'Add Ball';
+        this.addBallButton.style.width = '100%';
+        this.addBallButton.style.marginTop = '12px';
+        this.addBallButton.addEventListener('click', this.onAddBall);
+        this.container.appendChild(this.addBallButton);
+    }
+
+    public updateBallCount(count: number): void {
+        const atLimit = count >= MAX_BALL_COUNT;
+        this.addBallButton.disabled = atLimit;
+        this.addBallButton.textContent = atLimit
+            ? `Maximum ${MAX_BALL_COUNT} balls`
+            : 'Add Ball';
     }
 
     private createPauseButton(): void {
@@ -143,43 +205,45 @@ export class SimulationControls {
     private readonly body: SphereBody;
     private readonly debugRenderer: ParticleDebugRenderer;
     private readonly sharedControls: SharedSimulationControls;
+    private readonly onRemove: () => void;
     private readonly title: string;
-    private readonly side: 'left' | 'right';
+    private readonly onColorChange: (color: string) => void;
+    private readonly parent: HTMLElement;
 
     private readonly container: HTMLDetailsElement;
+    private summary!: HTMLElement;
+    private ballHeading!: HTMLHeadingElement;
 
     constructor(
         world: PhysicsWorld,
         body: SphereBody,
         debugRenderer: ParticleDebugRenderer,
         title = 'Simulation Controls',
-        side: 'left' | 'right' = 'right',
-        sharedControls = createSharedSimulationControls()
+        sharedControls = createSharedSimulationControls(),
+        onRemove: () => void = () => {},
+        parent: HTMLElement = document.body,
+        onColorChange: (color: string) => void = () => {}
     ) {
         this.world = world;
         this.body = body;
         this.debugRenderer = debugRenderer;
         this.title = title;
-        this.side = side;
         this.sharedControls = sharedControls;
+        this.onRemove = onRemove;
+        this.parent = parent;
+        this.onColorChange = onColorChange;
 
         this.container = document.createElement('details');
 
         this.createUI();
 
-        document.body.appendChild(
+        this.parent.appendChild(
             this.container
         );
     }
 
     private createUI(): void {
-        this.container.style.position = 'fixed';
-        this.container.style.top = '20px';
-        this.container.style[this.side] = '20px';
-        this.container.style.width = '280px';
-        this.container.style.maxWidth = 'calc(100vw - 40px)';
-        this.container.style.maxHeight = 'calc(100vh - 40px)';
-        this.container.style.overflowY = 'auto';
+        this.container.style.width = '100%';
         this.container.style.boxSizing = 'border-box';
         this.container.style.padding = '16px';
         this.container.style.background =
@@ -191,17 +255,31 @@ export class SimulationControls {
             '8px';
         this.container.style.zIndex = '1000';
 
-        const summary = document.createElement('summary');
-        summary.textContent = this.title;
-        summary.style.marginBottom = '12px';
-        summary.style.cursor = 'pointer';
-        summary.style.fontWeight = 'bold';
-        summary.style.userSelect = 'none';
-        this.container.appendChild(summary);
+        this.summary = document.createElement('summary');
+        this.summary.textContent = this.title;
+        this.summary.style.marginBottom = '0';
+        this.summary.style.cursor = 'pointer';
+        this.summary.style.fontWeight = 'bold';
+        this.summary.style.userSelect = 'none';
+        this.container.addEventListener('toggle', () => {
+            this.summary.style.marginBottom = this.container.open ? '12px' : '0';
+        });
+        this.container.appendChild(this.summary);
 
         this.createDiagnosticsControl();
-
+        this.createNameControl();
+        this.createColorControl();
         this.createBallControls();
+        this.createRemoveButton();
+    }
+
+    private createRemoveButton(): void {
+        const button = document.createElement('button');
+        button.textContent = 'Remove Ball';
+        button.style.width = '100%';
+        button.style.marginTop = '8px';
+        button.addEventListener('click', this.onRemove);
+        this.container.appendChild(button);
     }
 
     private createDiagnosticsControl(): void {
@@ -215,7 +293,8 @@ export class SimulationControls {
             document.createElement('input');
 
         checkbox.type = 'checkbox';
-        checkbox.checked = true;
+        checkbox.checked = false;
+        this.debugRenderer.setVisible(false);
 
         checkbox.addEventListener(
             'change',
@@ -239,15 +318,74 @@ export class SimulationControls {
         );
     }
 
+    private createNameControl(): void {
+        const wrapper = document.createElement('div');
+        wrapper.style.marginTop = '8px';
+
+        const label = document.createElement('label');
+        label.textContent = 'Ball name';
+        label.style.display = 'block';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = this.title.replace(/ Controls$/, '');
+        input.maxLength = 32;
+        input.style.width = '100%';
+        input.style.boxSizing = 'border-box';
+        input.addEventListener('change', () => {
+            const name = input.value.trim() || this.title.replace(/ Controls$/, '');
+            input.value = name;
+            this.summary.textContent = `${name} Controls`;
+            this.ballHeading.textContent = name;
+            this.debugRenderer.setName(name);
+        });
+
+        wrapper.append(label, input);
+        this.container.appendChild(wrapper);
+    }
+
+    private createColorControl(): void {
+        const wrapper = document.createElement('div');
+        wrapper.style.marginTop = '8px';
+
+        const label = document.createElement('label');
+        label.textContent = 'Colour';
+        label.style.display = 'block';
+
+        const palette = document.createElement('div');
+        palette.style.display = 'grid';
+        palette.style.gridTemplateColumns = 'repeat(6, 1fr)';
+        palette.style.gap = '4px';
+        palette.style.marginTop = '8px';
+
+        for (const color of BALL_COLORS) {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.title = color.name;
+            option.setAttribute('aria-label', color.name);
+            option.style.width = '18px';
+            option.style.height = '18px';
+            option.style.minWidth = '0';
+            option.style.padding = '0';
+            option.style.borderRadius = '50%';
+            option.style.backgroundColor = color.value;
+            option.style.border = color.name === 'White'
+                ? '2px solid #888'
+                : '2px solid rgba(255, 255, 255, 0.7)';
+            option.addEventListener('click', () => {
+                this.onColorChange(color.value);
+            });
+            palette.appendChild(option);
+        }
+
+        wrapper.append(label, palette);
+        this.container.appendChild(wrapper);
+    }
+
     private createBallControls(): void {
-        const heading =
-            document.createElement('h3');
-
-        heading.textContent = this.title.replace(' Controls', '');
-
-        this.container.appendChild(
-            heading
-        );
+        this.ballHeading = document.createElement('h3');
+        this.ballHeading.textContent = this.title.replace(/ Controls$/, '');
+        this.container.appendChild(this.ballHeading);
 
         const maximumRadius = Math.min(
             this.world.bounds.maxX - this.world.bounds.minX,
@@ -416,5 +554,9 @@ export class SimulationControls {
 
     public isPaused(): boolean {
         return this.sharedControls.paused;
+    }
+
+    public dispose(): void {
+        this.container.remove();
     }
 }

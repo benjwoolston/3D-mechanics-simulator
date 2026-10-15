@@ -3,6 +3,7 @@ import { SphereBody } from '../physics/SphereBody';
 
 export class ParticleRenderer {
     public readonly mesh: THREE.Mesh;
+    private readonly material: THREE.MeshStandardMaterial;
 
     constructor(body: SphereBody) {
         const geometry = new THREE.SphereGeometry(
@@ -11,13 +12,13 @@ export class ParticleRenderer {
             16
         );
 
-        const material = new THREE.MeshStandardMaterial({
+        this.material = new THREE.MeshStandardMaterial({
             color: 0x3399ff
         });
 
         this.mesh = new THREE.Mesh(
             geometry,
-            material
+            this.material
         );
 
         this.update(body);
@@ -32,7 +33,22 @@ export class ParticleRenderer {
         );
     }
 
+    public setColor(color: string): void {
+        this.material.color.set(color);
+    }
+
     public addToScene(scene: THREE.Scene): void {
         scene.add(this.mesh);
+    }
+
+    public dispose(): void {
+        this.mesh.removeFromParent();
+        this.mesh.geometry.dispose();
+        const material = this.mesh.material;
+        if (Array.isArray(material)) {
+            material.forEach(item => item.dispose());
+        } else {
+            material.dispose();
+        }
     }
 }

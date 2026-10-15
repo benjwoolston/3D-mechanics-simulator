@@ -33,6 +33,18 @@ export class PhysicsWorld {
         this.bodies.push(body);
     }
 
+    public removeBody(body: SphereBody): void {
+        const bodyIndex = this.bodies.indexOf(body);
+        if (bodyIndex === -1) {
+            return;
+        }
+
+        this.bodies.splice(bodyIndex, 1);
+        this.collisions = this.collisions.filter(
+            collision => collision.bodyA !== body && collision.bodyB !== body
+        );
+    }
+
     public update(deltaTime: number): void {
         this.collisions = [];
         const scaledDeltaTime = deltaTime * this.simulationSpeed;

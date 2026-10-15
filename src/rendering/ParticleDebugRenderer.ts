@@ -9,8 +9,13 @@ export class ParticleDebugRenderer {
     private readonly labelCanvas: HTMLCanvasElement;
     private readonly labelContext: CanvasRenderingContext2D;
     private readonly labelTexture: THREE.CanvasTexture;
+    private readonly nameLabel: THREE.Sprite;
+    private readonly nameCanvas: HTMLCanvasElement;
+    private readonly nameContext: CanvasRenderingContext2D;
+    private readonly nameTexture: THREE.CanvasTexture;
+    private diagnosticsVisible = false;
 
-    constructor(body: SphereBody) {
+    constructor(body: SphereBody, name: string) {
         this.velocityArrow = new THREE.ArrowHelper(
             new THREE.Vector3(1, 0, 0),
             new THREE.Vector3(0, 0, 0),
@@ -52,13 +57,49 @@ export class ParticleDebugRenderer {
 
         this.label.scale.set(5, 2.5, 1);
 
+        this.nameCanvas = document.createElement('canvas');
+        this.nameCanvas.width = 512;
+        this.nameCanvas.height = 96;
+        const nameContext = this.nameCanvas.getContext('2d');
+        if (!nameContext) {
+            throw new Error('Could not create name label canvas context.');
+        }
+        this.nameContext = nameContext;
+        this.nameTexture = new THREE.CanvasTexture(this.nameCanvas);
+        this.nameLabel = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: this.nameTexture,
+            transparent: true,
+            depthTest: false
+        }));
+        this.nameLabel.scale.set(3.2, 0.6, 1);
+        this.setName(name);
+
         this.update(body);
+        this.setVisible(false);
     }
 
     public update(body: SphereBody): void {
         this.updateVelocityArrow(body);
         this.updateAccelerationArrow(body);
         this.updateLabel(body);
+        this.nameLabel.position.set(
+            body.position[0],
+            body.position[1] + body.radius + 0.6,
+            body.position[2]
+        );
+    }
+
+    public setName(name: string): void {
+        this.nameContext.clearRect(0, 0, this.nameCanvas.width, this.nameCanvas.height);
+        this.nameContext.font = 'bold 56px monospace';
+        this.nameContext.textAlign = 'center';
+        this.nameContext.textBaseline = 'middle';
+        this.nameContext.lineWidth = 8;
+        this.nameContext.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+        this.nameContext.strokeText(name, this.nameCanvas.width / 2, this.nameCanvas.height / 2);
+        this.nameContext.fillStyle = 'white';
+        this.nameContext.fillText(name, this.nameCanvas.width / 2, this.nameCanvas.height / 2);
+        this.nameTexture.needsUpdate = true;
     }
 
     private updateVelocityArrow(
@@ -89,7 +130,7 @@ export class ParticleDebugRenderer {
                 Math.max(speed * 1.5, 1)
             );
 
-            this.velocityArrow.visible = true;
+            this.velocityArrow.visible = this.diagnosticsVisible;
         } else {
             this.velocityArrow.visible = false;
         }
@@ -121,7 +162,7 @@ export class ParticleDebugRenderer {
 
             this.accelerationArrow.setLength(1.5);
 
-            this.accelerationArrow.visible = true;
+            this.accelerationArrow.visible = this.diagnosticsVisible;
         } else {
             this.accelerationArrow.visible = false;
         }
@@ -189,12 +230,41 @@ export class ParticleDebugRenderer {
         scene.add(this.velocityArrow);
         scene.add(this.accelerationArrow);
         scene.add(this.label);
+        scene.add(this.nameLabel);
     }
 
     public setVisible(visible: boolean): void {
+        this.diagnosticsVisible = visible;
         this.velocityArrow.visible = visible;
         this.accelerationArrow.visible = visible;
         this.label.visible = visible;
+    }
+
+    public dispose(): void {
+        this.velocityArrow.removeFromParent();
+        this.accelerationArrow.removeFromParent();
+        this.label.removeFromParent();
+        this.nameLabel.removeFromParent();
+
+        for (const arrow of [this.velocityArrow, this.accelerationArrow]) {
+            arrow.line.geometry.dispose();
+            for (const material of Array.isArray(arrow.line.material)
+                ? arrow.line.material
+                : [arrow.line.material]) {
+                material.dispose();
+            }
+            arrow.cone.geometry.dispose();
+            for (const material of Array.isArray(arrow.cone.material)
+                ? arrow.cone.material
+                : [arrow.cone.material]) {
+                material.dispose();
+            }
+        }
+
+        this.label.material.dispose();
+        this.labelTexture.dispose();
+        this.nameLabel.material.dispose();
+        this.nameTexture.dispose();
     }
 
 }
