@@ -396,7 +396,6 @@ export class SimulationControls {
 
     private readonly container: HTMLDetailsElement;
     private summary!: HTMLElement;
-    private ballHeading!: HTMLHeadingElement;
 
     constructor(
         world: PhysicsWorld,
@@ -522,7 +521,6 @@ export class SimulationControls {
             const name = input.value.trim() || this.title.replace(/ Controls$/, '');
             input.value = name;
             this.summary.textContent = `${name} Controls`;
-            this.ballHeading.textContent = name;
             this.debugRenderer.setName(name);
             this.onNameChange(name);
         });
@@ -570,10 +568,6 @@ export class SimulationControls {
     }
 
     private createBallControls(): void {
-        this.ballHeading = document.createElement('h3');
-        this.ballHeading.textContent = this.title.replace(/ Controls$/, '');
-        this.container.appendChild(this.ballHeading);
-
         const maximumRadius = Math.min(
             this.world.bounds.maxX - this.world.bounds.minX,
             this.world.bounds.maxY - this.world.bounds.minY,
