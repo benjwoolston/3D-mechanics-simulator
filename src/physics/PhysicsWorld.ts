@@ -7,6 +7,7 @@ import { SimulationBounds } from './SimulationBounds';
 export class PhysicsWorld {
     public readonly bodies: SphereBody[] = [];
     public collisions: CollisionInfo[] = [];
+    private readonly sphereRestitutions = new Map<SphereBody, Map<SphereBody, number>>();
     public readonly fixedTimeStep = 0.01;
     private readonly restingSpeedThreshold = 0.05;
     private readonly sphereCollision = new SphereCollision();
@@ -43,6 +44,26 @@ export class PhysicsWorld {
         this.collisions = this.collisions.filter(
             collision => collision.bodyA !== body && collision.bodyB !== body
         );
+        this.sphereRestitutions.delete(body);
+        for (const pairSettings of this.sphereRestitutions.values()) {
+            pairSettings.delete(body);
+        }
+    }
+
+    public getSphereRestitution(bodyA: SphereBody, bodyB: SphereBody): number {
+        return this.sphereRestitutions.get(bodyA)?.get(bodyB)
+            ?? this.sphereRestitutions.get(bodyB)?.get(bodyA)
+            ?? this.restitutionCoefficient;
+    }
+
+    public setSphereRestitution(bodyA: SphereBody, bodyB: SphereBody, value: number): void {
+        let pairSettings = this.sphereRestitutions.get(bodyA);
+        if (!pairSettings) {
+            pairSettings = new Map<SphereBody, number>();
+            this.sphereRestitutions.set(bodyA, pairSettings);
+        }
+
+        pairSettings.set(bodyB, value);
     }
 
     public update(deltaTime: number): void {
@@ -152,7 +173,7 @@ export class PhysicsWorld {
         for (const collision of collisions) {
             this.sphereCollision.resolveCollision(
                 collision,
-                this.restitutionCoefficient
+                this.getSphereRestitution(collision.bodyA, collision.bodyB)
             );
         }
 

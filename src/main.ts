@@ -12,7 +12,8 @@ import {
     createSharedSimulationControls,
     MAX_BALL_COUNT,
     SimulationSettingsControls,
-    SimulationControls
+    SimulationControls,
+    SphereRestitutionControls
 } from './UI/simulationControls';
 
 const bounds = new SimulationBounds(-10, 10,0, 10,-10, 10);
@@ -44,7 +45,13 @@ interface BallView {
 
 const ballViews = new Map<SphereBody, BallView>();
 const ballNumbers = new Map<SphereBody, number>();
+const ballNames = new Map<SphereBody, string>();
 let settingsControls: SimulationSettingsControls;
+let sphereRestitutionControls: SphereRestitutionControls;
+
+function getBallName(body: SphereBody): string {
+    return ballNames.get(body) ?? 'Ball';
+}
 
 function getAvailableBallNumber(): number | undefined {
     const usedNumbers = new Set(ballNumbers.values());
@@ -69,6 +76,7 @@ function addBall(
     const dock = ballControlsDocks[(ballNumber - 1) % ballControlsDocks.length];
     const name = `Ball ${ballNumber}`;
     const debugRenderer = new ParticleDebugRenderer(body, name);
+    ballNames.set(body, name);
     const controls = new SimulationControls(
         physicsWorld,
         body,
@@ -77,7 +85,11 @@ function addBall(
         sharedControls,
         () => removeBall(body),
         dock,
-        color => renderer.setColor(color)
+        color => renderer.setColor(color),
+        updatedName => {
+            ballNames.set(body, updatedName);
+            sphereRestitutionControls.refresh();
+        }
     );
 
     physicsWorld.addBody(body);
@@ -86,6 +98,7 @@ function addBall(
     ballNumbers.set(body, ballNumber);
     ballViews.set(body, { body, renderer, debugRenderer, controls });
     settingsControls.updateBallCount(physicsWorld.bodies.length);
+    sphereRestitutionControls.refresh();
 }
 
 function removeBall(body: SphereBody): void {
@@ -100,7 +113,9 @@ function removeBall(body: SphereBody): void {
     ballView.debugRenderer.dispose();
     ballViews.delete(body);
     ballNumbers.delete(body);
+    ballNames.delete(body);
     settingsControls.updateBallCount(physicsWorld.bodies.length);
+    sphereRestitutionControls.refresh();
 }
 
 function addBallAtAvailablePosition(): void {
@@ -140,6 +155,7 @@ function addBallAtAvailablePosition(): void {
 }
 
 settingsControls = new SimulationSettingsControls(physicsWorld, sharedControls, addBallAtAvailablePosition);
+sphereRestitutionControls = new SphereRestitutionControls(physicsWorld, getBallName);
 addBall([4, 1, 0], [2, 3, 5]);
 addBall([0, 1, 0]);
 
