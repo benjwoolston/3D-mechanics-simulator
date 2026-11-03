@@ -53,17 +53,20 @@ export class SimulationSettingsControls {
     private readonly world: PhysicsWorld;
     private readonly sharedControls: SharedSimulationControls;
     private readonly onAddBall: () => void;
+    private readonly onBoxResize: (width: number, height: number, depth: number) => void;
     private readonly container: HTMLDetailsElement;
     private readonly addBallButton: HTMLButtonElement;
 
     constructor(
         world: PhysicsWorld,
         sharedControls: SharedSimulationControls,
-        onAddBall: () => void
+        onAddBall: () => void,
+        onBoxResize: (width: number, height: number, depth: number) => void
     ) {
         this.world = world;
         this.sharedControls = sharedControls;
         this.onAddBall = onAddBall;
+        this.onBoxResize = onBoxResize;
         this.container = document.createElement('details');
         this.addBallButton = document.createElement('button');
         this.createUI();
@@ -101,7 +104,70 @@ export class SimulationSettingsControls {
         this.createSpeedControl();
         this.createGravityControl();
         this.createRestitutionControl();
+        this.createBoxSizeControl();
         this.createAddBallButton();
+    }
+
+    private createBoxSizeControl(): void {
+        const wrapper = document.createElement('div');
+        wrapper.style.marginTop = '12px';
+
+        const heading = document.createElement('div');
+        heading.textContent = 'Simulation Box Size';
+        heading.style.marginBottom = '4px';
+
+        const row = document.createElement('div');
+        row.style.display = 'grid';
+        row.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))';
+        row.style.gap = '6px';
+
+        const dimensions = [
+            { name: 'Width', value: this.world.bounds.width },
+            { name: 'Height', value: this.world.bounds.height },
+            { name: 'Depth', value: this.world.bounds.depth }
+        ];
+        const inputs: HTMLInputElement[] = [];
+
+        for (const dimension of dimensions) {
+            const label = document.createElement('label');
+            label.textContent = dimension.name;
+            label.style.fontSize = '12px';
+
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '1';
+            input.max = '1000';
+            input.step = '1';
+            input.value = dimension.value.toString();
+            input.style.width = '100%';
+            input.style.boxSizing = 'border-box';
+            inputs.push(input);
+            label.appendChild(input);
+            row.appendChild(label);
+
+            input.addEventListener('change', () => {
+                const largestRadius = Math.max(0, ...this.world.bodies.map(body => body.radius));
+                const minimumDimension = Math.max(1, largestRadius * 2);
+
+                for (const [index, control] of inputs.entries()) {
+                    control.min = minimumDimension.toString();
+                    const parsedValue = Number(control.value);
+                    const value = Number.isFinite(parsedValue)
+                        ? Math.max(minimumDimension, Math.min(1000, parsedValue))
+                        : [this.world.bounds.width, this.world.bounds.height, this.world.bounds.depth][index];
+                    control.value = value.toString();
+                }
+
+                this.onBoxResize(
+                    Number(inputs[0].value),
+                    Number(inputs[1].value),
+                    Number(inputs[2].value)
+                );
+            });
+        }
+
+        wrapper.append(heading, row);
+        this.container.appendChild(wrapper);
     }
 
     private createAddBallButton(): void {
@@ -396,6 +462,7 @@ export class SimulationControls {
 
     private readonly container: HTMLDetailsElement;
     private summary!: HTMLElement;
+    private readonly positionInputs: HTMLInputElement[] = [];
 
     constructor(
         world: PhysicsWorld,
@@ -574,11 +641,11 @@ export class SimulationControls {
             this.world.bounds.maxZ - this.world.bounds.minZ
         ) / 2;
 
-        this.createVectorInputs('Position', this.body.position, [
+        this.positionInputs.push(...this.createVectorInputs('Position', this.body.position, [
             [this.world.bounds.minX + this.body.radius, this.world.bounds.maxX - this.body.radius],
             [this.world.bounds.minY + this.body.radius, this.world.bounds.maxY - this.body.radius],
             [this.world.bounds.minZ + this.body.radius, this.world.bounds.maxZ - this.body.radius]
-        ]);
+        ]));
 
         this.createNumberInput(
             'Mass',
@@ -613,9 +680,10 @@ export class SimulationControls {
         name: string,
         vector: [number, number, number],
         ranges: [[number, number], [number, number], [number, number]]
-    ): void {
+    ): HTMLInputElement[] {
         const wrapper = document.createElement('div');
         wrapper.style.marginBottom = '8px';
+        const inputs: HTMLInputElement[] = [];
 
         const heading = document.createElement('label');
         heading.textContent = name;
@@ -650,17 +718,35 @@ export class SimulationControls {
                     value = vector[index];
                 }
 
-                value = Math.max(ranges[index][0], Math.min(ranges[index][1], value));
+                const min = Number(input.min);
+                const max = Number(input.max);
+                value = Math.max(min, Math.min(max, value));
                 input.value = value.toString();
                 vector[index] = value;
             });
 
+            inputs.push(input);
             axisLabel.appendChild(input);
             row.appendChild(axisLabel);
         }
 
         wrapper.append(heading, row);
         this.container.appendChild(wrapper);
+        return inputs;
+    }
+
+    public refreshPositionBounds(): void {
+        const axisBounds = [
+            [this.world.bounds.minX + this.body.radius, this.world.bounds.maxX - this.body.radius],
+            [this.world.bounds.minY + this.body.radius, this.world.bounds.maxY - this.body.radius],
+            [this.world.bounds.minZ + this.body.radius, this.world.bounds.maxZ - this.body.radius]
+        ];
+
+        for (const [index, input] of this.positionInputs.entries()) {
+            input.min = axisBounds[index][0].toString();
+            input.max = axisBounds[index][1].toString();
+            input.value = this.body.position[index].toString();
+        }
     }
 
     private createNumberInput(

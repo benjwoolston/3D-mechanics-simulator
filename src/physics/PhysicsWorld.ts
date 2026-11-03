@@ -50,6 +50,25 @@ export class PhysicsWorld {
         }
     }
 
+    public setBoundsDimensions(width: number, height: number, depth: number): void {
+        this.bounds.setDimensions(width, height, depth);
+
+        for (const body of this.bodies) {
+            body.position[0] = Math.max(
+                this.bounds.minX + body.radius,
+                Math.min(this.bounds.maxX - body.radius, body.position[0])
+            );
+            body.position[1] = Math.max(
+                this.bounds.minY + body.radius,
+                Math.min(this.bounds.maxY - body.radius, body.position[1])
+            );
+            body.position[2] = Math.max(
+                this.bounds.minZ + body.radius,
+                Math.min(this.bounds.maxZ - body.radius, body.position[2])
+            );
+        }
+    }
+
     public getSphereRestitution(bodyA: SphereBody, bodyB: SphereBody): number {
         return this.sphereRestitutions.get(bodyA)?.get(bodyB)
             ?? this.sphereRestitutions.get(bodyB)?.get(bodyA)

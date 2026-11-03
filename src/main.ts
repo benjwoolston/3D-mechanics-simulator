@@ -154,7 +154,18 @@ function addBallAtAvailablePosition(): void {
     addBall(position);
 }
 
-settingsControls = new SimulationSettingsControls(physicsWorld, sharedControls, addBallAtAvailablePosition);
+settingsControls = new SimulationSettingsControls(
+    physicsWorld,
+    sharedControls,
+    addBallAtAvailablePosition,
+    (width, height, depth) => {
+        physicsWorld.setBoundsDimensions(width, height, depth);
+        simulationBox.setDimensions(width, height, depth);
+        for (const ballView of ballViews.values()) {
+            ballView.controls.refreshPositionBounds();
+        }
+    }
+);
 sphereRestitutionControls = new SphereRestitutionControls(physicsWorld, getBallName);
 addBall([4, 1, 0], [2, 3, 5]);
 addBall([0, 1, 0]);

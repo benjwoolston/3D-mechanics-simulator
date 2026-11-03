@@ -1,12 +1,12 @@
 export class SimulationBounds {
-    public readonly minX: number;
-    public readonly maxX: number;
+    public minX: number;
+    public maxX: number;
 
-    public readonly minY: number;
-    public readonly maxY: number;
+    public minY: number;
+    public maxY: number;
 
-    public readonly minZ: number;
-    public readonly maxZ: number;
+    public minZ: number;
+    public maxZ: number;
 
     constructor(
         minX: number,
@@ -42,5 +42,30 @@ export class SimulationBounds {
 
         this.minZ = minZ;
         this.maxZ = maxZ;
+    }
+
+    public setDimensions(width: number, height: number, depth: number): void {
+        if (![width, height, depth].every(Number.isFinite) || width <= 0 || height <= 0 || depth <= 0) {
+            throw new Error('Box dimensions must be finite positive numbers.');
+        }
+
+        this.minX = -width / 2;
+        this.maxX = width / 2;
+        this.minY = 0;
+        this.maxY = height;
+        this.minZ = -depth / 2;
+        this.maxZ = depth / 2;
+    }
+
+    public get width(): number {
+        return this.maxX - this.minX;
+    }
+
+    public get height(): number {
+        return this.maxY - this.minY;
+    }
+
+    public get depth(): number {
+        return this.maxZ - this.minZ;
     }
 }
