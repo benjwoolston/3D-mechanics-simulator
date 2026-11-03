@@ -10,6 +10,8 @@ An interactive 3D physics simulator built with TypeScript and Three.js, using cl
 
 <h3>Overview</h3>
 
+![3D Mechanics Simulator](screenshots/Screenshot1.png)
+
 This project simulates particles moving inside a 3D environment including gravity and ball collisions.
 
 The goal is to provide an interactive visual simulation of A-level Further and regular mechanics problems in real time, to support understanding.
