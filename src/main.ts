@@ -11,10 +11,10 @@ import {
     createBallControlsDock,
     createSharedSimulationControls,
     MAX_BALL_COUNT,
-    SimulationSettingsControls,
-    SimulationControls,
-    SphereRestitutionControls
+    SimulationSettingsControls
 } from './UI/simulationControls';
+import { SimulationControls } from './UI/ballControls';
+import { SphereRestitutionControls } from './UI/restitutionControls';
 
 const bounds = new SimulationBounds(-10, 10,0, 10,-10, 10);
 const sceneManager = new SceneManager();
