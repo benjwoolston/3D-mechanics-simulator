@@ -24,7 +24,7 @@ export class PhysicsWorld {
         bounds: SimulationBounds,
         restitutionCoefficient: number = 1.0
     ) {
-        this.gravity = new Gravity();
+        this.gravity = new Gravity(gravity);
         this.integrator = new Integrator();
         this.bounds = bounds;
         this.restitutionCoefficient = restitutionCoefficient;
