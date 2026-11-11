@@ -60,6 +60,7 @@ export class SphereRestitutionControls {
         this.world = world;
         this.getBallName = getBallName;
         this.container = document.createElement('div');
+        this.container.className = 'collision-controls';
         Object.assign(this.container.style, {
             position: 'fixed',
             left: '20px',
@@ -108,6 +109,7 @@ export class SphereRestitutionControls {
 
         for (const body of bodies) {
             const panel = document.createElement('details');
+            panel.className = 'collision-ball-panel';
             panel.open = this.activeBody === body;
             panel.style.width = '100%';
             panel.style.boxSizing = 'border-box';
@@ -224,4 +226,3 @@ export class SphereRestitutionControls {
         container.appendChild(wrapper);
     }
 }
-

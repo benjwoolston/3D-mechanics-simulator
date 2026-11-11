@@ -16,6 +16,7 @@ export function createSharedSimulationControls(): SharedSimulationControls {
 
 export function createBallControlsDock(side: 'left' | 'right'): HTMLDivElement {
     const dock = document.createElement('div');
+    dock.className = 'control-dock';
     Object.assign(dock.style, {
         position: 'fixed',
         [side]: '20px',
@@ -53,6 +54,7 @@ export class SimulationSettingsControls {
         this.onAddBall = onAddBall;
         this.onBoxResize = onBoxResize;
         this.container = document.createElement('details');
+        this.container.className = 'simulation-settings';
         this.addBallButton = document.createElement('button');
         this.createUI();
         document.body.appendChild(this.container);

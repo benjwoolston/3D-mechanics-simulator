@@ -100,6 +100,7 @@ export class BallAppearanceControls {
 
         for (const color of BALL_COLORS) {
             const option = document.createElement('button');
+            option.className = 'color-swatch';
             option.type = 'button';
             option.title = color.name;
             option.setAttribute('aria-label', color.name);

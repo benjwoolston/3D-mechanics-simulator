@@ -1,0 +1,231 @@
+:root {
+    color-scheme: dark;
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    background: #111315;
+    color: #d7dadd;
+    --surface: #1b1e21;
+    --surface-raised: #222629;
+    --surface-input: #141719;
+    --border: #343a3f;
+    --border-strong: #454c52;
+    --text: #d7dadd;
+    --text-muted: #9aa2a8;
+    --accent: #6da7cb;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+body {
+    background: #111315;
+    color: var(--text);
+    font: 12px/1.45 Inter, "Segoe UI", Arial, sans-serif;
+    letter-spacing: 0.01em;
+}
+
+canvas {
+    display: block;
+}
+
+.control-dock {
+    gap: 8px !important;
+}
+
+.simulation-settings,
+.ball-control-panel,
+.collision-controls {
+    color: var(--text) !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 4px !important;
+    box-shadow: 0 4px 14px rgb(0 0 0 / 22%);
+    font: inherit !important;
+}
+
+.simulation-settings,
+.ball-control-panel {
+    padding: 12px !important;
+}
+
+.simulation-settings:not([open]) {
+    padding: 6px 12px !important;
+}
+
+.simulation-settings:not([open]) > summary {
+    margin-bottom: 0 !important;
+    line-height: 1.25;
+}
+
+.simulation-settings > summary,
+.ball-control-panel > summary,
+.collision-controls > div:first-child {
+    color: #e5e8ea;
+    font-size: 12px;
+    font-weight: 600 !important;
+    letter-spacing: 0.035em;
+}
+
+.simulation-settings[open] > summary,
+.ball-control-panel[open] > summary {
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.simulation-settings summary,
+.ball-control-panel summary,
+.collision-controls summary {
+    cursor: pointer;
+    user-select: none;
+}
+
+label,
+.collision-controls {
+    color: var(--text-muted);
+}
+
+.simulation-settings label,
+.ball-control-panel label,
+.collision-controls label {
+    font-size: 11px;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button:not(.color-swatch) {
+    min-height: 28px;
+    padding: 5px 9px;
+    color: #dce1e4;
+    background: var(--surface-raised);
+    border: 1px solid var(--border-strong);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+button:not(.color-swatch):hover:not(:disabled) {
+    color: #fff;
+    background: #2b3135;
+    border-color: #68737b;
+}
+
+button:not(.color-swatch):focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+button:disabled {
+    color: #747d83 !important;
+    background: #1a1d1f !important;
+    border-color: #303538 !important;
+    cursor: not-allowed;
+}
+
+input:not([type="checkbox"]):not([type="range"]),
+select {
+    min-height: 26px;
+    padding: 4px 6px;
+    color: #e0e4e6;
+    background: var(--surface-input);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+}
+
+input:not([type="checkbox"]):not([type="range"]):hover,
+select:hover {
+    border-color: var(--border-strong);
+}
+
+input:disabled {
+    color: #737b80 !important;
+    background: #191c1e !important;
+    opacity: 0.7;
+}
+
+input[type="checkbox"],
+input[type="range"] {
+    accent-color: var(--accent) !important;
+}
+
+input[type="checkbox"] {
+    vertical-align: middle;
+}
+
+.color-swatch {
+    border-radius: 3px !important;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 25%);
+    cursor: pointer;
+}
+
+.color-swatch:hover {
+    outline: 1px solid #e6eaed;
+    outline-offset: 1px;
+}
+
+.collision-ball-panel {
+    padding: 4px 7px !important;
+    background: var(--surface-raised) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 3px !important;
+}
+
+.collision-controls output {
+    color: #cbd2d7;
+    font-variant-numeric: tabular-nums;
+}
+
+.compact-number-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.compact-number-row > div {
+    margin-bottom: 8px;
+}
+
+@media (max-width: 700px) {
+    .simulation-settings {
+        top: 8px !important;
+        width: 250px !important;
+        max-width: calc(100vw - 16px) !important;
+    }
+
+    .control-dock {
+        top: 8px !important;
+        width: 180px !important;
+        max-width: calc((100vw - 280px) / 2) !important;
+        max-height: calc(100vh - 16px) !important;
+    }
+
+    .control-dock[style*="left"] {
+        left: 8px !important;
+    }
+
+    .control-dock[style*="right"] {
+        right: 8px !important;
+    }
+
+    .collision-controls {
+        left: 8px !important;
+        bottom: 8px !important;
+        max-width: calc(100vw - 16px) !important;
+    }
+}

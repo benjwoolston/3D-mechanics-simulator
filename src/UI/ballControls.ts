@@ -30,6 +30,7 @@ export class SimulationControls {
         this.parent = parent;
 
         this.container = document.createElement('details');
+        this.container.className = 'ball-control-panel';
 
         this.createUI(world, body, debugRenderer, title, onColorChange, onNameChange);
 

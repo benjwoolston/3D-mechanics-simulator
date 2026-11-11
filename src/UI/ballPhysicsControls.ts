@@ -27,6 +27,10 @@ export class BallPhysicsControls {
             [this.world.bounds.minZ + this.body.radius, this.world.bounds.maxZ - this.body.radius]
         ]));
 
+        const dimensionsRow = document.createElement('div');
+        dimensionsRow.className = 'compact-number-row';
+        this.container.appendChild(dimensionsRow);
+
         this.createNumberInput(
             'Mass',
             0.01,
@@ -35,7 +39,8 @@ export class BallPhysicsControls {
             this.body.mass,
             value => {
                 this.body.mass = value;
-            }
+            },
+            dimensionsRow
         );
 
         this.createNumberInput(
@@ -46,7 +51,8 @@ export class BallPhysicsControls {
             this.body.radius,
             value => {
                 this.body.radius = value;
-            }
+            },
+            dimensionsRow
         );
 
         this.createVectorInputs('Velocity', this.body.velocity, [
@@ -135,7 +141,8 @@ export class BallPhysicsControls {
         max: number,
         step: number,
         initialValue: number,
-        onChange: (value: number) => void
+        onChange: (value: number) => void,
+        parent: HTMLElement = this.container
     ): HTMLInputElement {
         const wrapper = document.createElement('div');
         wrapper.style.marginBottom = '8px';
@@ -165,7 +172,7 @@ export class BallPhysicsControls {
 
         label.appendChild(input);
         wrapper.appendChild(label);
-        this.container.appendChild(wrapper);
+        parent.appendChild(wrapper);
 
         return input;
     }

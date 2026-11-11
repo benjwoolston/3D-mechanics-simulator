@@ -1,3 +1,4 @@
+import './style.css';
 import { SceneManager } from './rendering/SceneManager';
 import { CameraController } from './rendering/CameraController';
 import { SimulationBox } from './rendering/SimulationBox';
