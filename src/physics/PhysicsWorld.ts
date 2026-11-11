@@ -30,6 +30,22 @@ export class PhysicsWorld {
         this.restitutionCoefficient = restitutionCoefficient;
     }
 
+    public get gravityMagnitude(): number {
+        return this.gravity.magnitude;
+    }
+
+    public setGravityMagnitude(value: number): void {
+        this.gravity.setMagnitude(value);
+    }
+
+    public get isGravityDownward(): boolean {
+        return this.gravity.isDownward;
+    }
+
+    public flipGravityDirection(): void {
+        this.gravity.flipDirection();
+    }
+
     public addBody(body: SphereBody): void {
         this.bodies.push(body);
     }

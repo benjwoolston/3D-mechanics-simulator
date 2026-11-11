@@ -143,18 +143,70 @@ export class SimulationSettingsControls {
     }
 
     private createGravityControl(): void {
-        const label = document.createElement('label');
-        label.style.display = 'block';
-        label.style.marginTop = '12px';
+        const wrapper = document.createElement('div');
+        wrapper.style.marginTop = '12px';
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.checked = this.world.gravityEnabled;
-        checkbox.addEventListener('change', () => {
-            this.world.gravityEnabled = checkbox.checked;
+        const enabledLabel = document.createElement('label');
+        enabledLabel.append(checkbox, ' Gravity enabled');
+
+        const gravityRow = document.createElement('div');
+        gravityRow.style.display = 'flex';
+        gravityRow.style.gap = '6px';
+        gravityRow.style.marginTop = '4px';
+
+        const magnitudeLabel = document.createElement('label');
+        magnitudeLabel.textContent = 'Gravity';
+        magnitudeLabel.style.flex = '1';
+
+        const magnitudeInput = document.createElement('input');
+        magnitudeInput.type = 'number';
+        magnitudeInput.min = '0';
+        magnitudeInput.max = '1000';
+        magnitudeInput.step = '0.1';
+        magnitudeInput.value = this.world.gravityMagnitude.toString();
+        magnitudeInput.style.width = '100%';
+        magnitudeInput.style.boxSizing = 'border-box';
+        magnitudeInput.setAttribute('aria-label', 'Gravity magnitude');
+        magnitudeLabel.appendChild(magnitudeInput);
+
+        const directionButton = document.createElement('button');
+        directionButton.type = 'button';
+        directionButton.style.alignSelf = 'flex-end';
+        directionButton.setAttribute('aria-label', 'Flip gravity direction');
+
+        const updateDirectionButton = (): void => {
+            directionButton.textContent = this.world.isGravityDownward ? '↓' : '↑';
+            directionButton.title = `Gravity points ${this.world.isGravityDownward ? 'down' : 'up'}`;
+        };
+        updateDirectionButton();
+
+        magnitudeInput.addEventListener('change', () => {
+            const parsedValue = Number(magnitudeInput.value);
+            const value = Number.isFinite(parsedValue)
+                ? Math.max(0, Math.min(1000, parsedValue))
+                : this.world.gravityMagnitude;
+            magnitudeInput.value = value.toString();
+            this.world.setGravityMagnitude(value);
         });
 
-        label.append(checkbox, ' Gravity enabled');
-        this.container.appendChild(label);
+        directionButton.addEventListener('click', () => {
+            this.world.flipGravityDirection();
+            updateDirectionButton();
+        });
+
+        checkbox.addEventListener('change', () => {
+            this.world.gravityEnabled = checkbox.checked;
+            magnitudeInput.disabled = !checkbox.checked;
+            directionButton.disabled = !checkbox.checked;
+        });
+
+        magnitudeInput.disabled = !checkbox.checked;
+        directionButton.disabled = !checkbox.checked;
+        gravityRow.append(magnitudeLabel, directionButton);
+        wrapper.append(enabledLabel, gravityRow);
+        this.container.appendChild(wrapper);
     }
 }
